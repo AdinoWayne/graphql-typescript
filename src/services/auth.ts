@@ -89,7 +89,7 @@ export default class AuthService {
 			const user = userRecord.toObject();
 			return { user, token };
 		} else {
-			throw new Error('Invalid Password');
+			throw new Error('Invalid Credentials');
 		}
 	}
 

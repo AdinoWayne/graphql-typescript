@@ -8,29 +8,24 @@ const User = new mongoose.Schema(
 			required: [true, 'Please enter a full name'],
 			index: true,
 		},
-
 		email: {
 			type: String,
 			lowercase: true,
 			unique: true,
 			index: true,
 		},
-
-		password: String,
-
-		salt: String,
-
-		role: {
+		password: {
 			type: String,
-			default: 'user',
+			required: true
 		},
-
-		lastLogin: {
+		avatar: {
+			type: String
+		},
+		date: {
 			type: Date,
-			default: null,
-		},
-	},
-	{ timestamps: true },
+			default: Date.now
+		}
+	}
 );
 
 export default mongoose.model<IUser & mongoose.Document>('User', User);

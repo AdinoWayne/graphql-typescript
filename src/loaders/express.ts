@@ -4,10 +4,6 @@ import cors from 'cors';
 import routes from '../api';
 import config from '../config';
 export default ({ app }: { app: express.Application }) => {
-  /**
-   * Health Check endpoints
-   * @TODO Explain why they are here
-   */
   app.get('/status', (_req, res) => {
     res.status(200).end();
   });
