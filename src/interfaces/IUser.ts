@@ -2,10 +2,9 @@ export interface IUser {
 	_id: string;
 	name: string;
 	email: string;
+	avatar: string;
 	password: string;
-	salt: string;
-	role: string;
-	lastLogin: Date;
+	date: Date;
 }
 
 export interface IUserInputDTO {
