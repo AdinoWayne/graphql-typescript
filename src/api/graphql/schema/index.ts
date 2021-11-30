@@ -48,10 +48,21 @@ export const graphQlSchema = buildSchema(`
           users: [User]
           user(_id: ID!): User
           profiles: [Profile]
+          profile(_id: ID!): Profile
           posts: [Post]
+          post(_id: ID!): Post
+        }
+
+        input postInput {
+          text: String!
+        }
+
+        type Mutation {
+          storePost(input: postInput): Post
         }
 
         schema {
-            query: RootQuery
+            query: RootQuery,
+            mutation: Mutation
         }
   `);
