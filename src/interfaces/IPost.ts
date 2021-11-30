@@ -4,18 +4,18 @@ export interface IPost {
 	name: string;
 	avatar: string;
 	user: any;
-	likes: Array<{
+	likes: {
 		_id: string;
-		user: any
-	}>;
-	comments: Array<{
+		user: any;
+	}[];
+	comments: {
 		_id: string;
 		text: string;
 		name: string;
 		avatar: string;
 		user: any;
 		date: Date;
-	}>;
+	}[];
 	date: Date;
 }
 

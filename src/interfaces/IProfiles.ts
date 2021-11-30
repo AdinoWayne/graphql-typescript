@@ -5,34 +5,34 @@ export interface IProfile {
 	website: string;
 	location: string;
 	status: string;
-	skills: Array<string>;
+	skills: string[];
 	bio: string;
 	githubusername: string;
-	experience: Array<{
+	experience: {
 		title: string;
 		company: string;
 		location: string;
 		from: Date;
 		to: Date;
-		current: Boolean;
+		current: boolean;
 		description: string;
-	}>
-	education: Array<{
+	}[];
+	education: {
 		school: string;
 		degree: string;
 		fieldofstudy: string;
 		from: Date;
 		to: Date;
-		current: Boolean;
+		current: boolean;
 		description: string;
-	}>,
+	}[];
 	social: {
-		youtube: string,
-		twitter: string,
-		facebook: string,
-		linkedin: string,
-		instagram: string
-	},
+		youtube: string;
+		twitter: string;
+		facebook: string;
+		linkedin: string;
+		instagram: string;
+	};
 	date: Date;
 }
 
