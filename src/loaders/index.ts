@@ -12,7 +12,17 @@ export default async ({ expressApp }) => {
 		name: 'userModel',
 		model: require('../models/user').default,
 	};
+	const postModel = {
+		name: 'postModel',
+		model: require('../models/post').default,
+	};
+	const profileModel = {
+		name: 'profileModel',
+		model: require('../models/profile').default,
+	};
 	Container.set(userModel.name, userModel.model);
+	Container.set(postModel.name, postModel.model);
+	Container.set(profileModel.name, profileModel.model);
 	Container.set('logger', LoggerInstance);
 	await expressLoader({ app: expressApp });
 	Logger.info('Express loaded');

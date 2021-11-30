@@ -12,8 +12,43 @@ export const graphQlSchema = buildSchema(`
             date: Date
         }
 
+        type Profile {
+          _id: ID!
+          bio: String
+          githubusername: String
+          location: String
+          status: String
+          website: String
+          date: Date
+        }
+
+        type Comment {
+          _id: ID!
+          text: String
+          name: String
+          avatar: String
+          date: Date
+        }
+
+        type Like {
+          _id: ID!
+          user: ID!
+        }
+
+        type Post {
+          _id: ID!
+          text: String
+          name: String
+          likes: [Like]
+          comments: [Comment]
+          date: Date
+        }
+
         type RootQuery {
           users: [User]
+          user(_id: ID!): User
+          profiles: [Profile]
+          posts: [Post]
         }
 
         schema {
