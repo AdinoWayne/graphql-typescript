@@ -54,6 +54,8 @@
     "morgan": "^1.9.1",
     "reflect-metadata": "^0.1.12",
     "typedi": "^0.8.0",
+    "validator": "^13.7.0",
+    "validator-fluent": "^0.4.2",
     "winston": "^3.2.1"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
 import { IPost } from '../../../interfaces/IPost';
 import { IProfile } from '../../../interfaces/IProfiles';
+import { validate, ValidationError } from 'validator-fluent';
 
 export const graphQlResolvers = {
 	users: async () => {
@@ -35,9 +36,15 @@ export const graphQlResolvers = {
 		const profile = ProfileModel.findOne({ _id: _id });
 		return profile;
 	},
-	storePost: async ({input}) => {
-		console.log(input);
-		// TODO
-		return { _id: 1};
-	}
+	storePost: async ({ input }) => {
+		const [data, errors] = validate(input, value => ({
+			text: value('text')
+				.notEmpty()
+				.isLength({ min: 8, max: 50 }),
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors, errors['text'][0]);
+		}
+		return { _id: 1 };
+	},
 };
