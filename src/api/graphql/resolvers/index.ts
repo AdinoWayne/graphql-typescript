@@ -1,9 +1,10 @@
 import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
-import { IPost } from '../../../interfaces/IPost';
+import { IPost, IPostInputDTO } from '../../../interfaces/IPost';
 import { IProfile } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
+import { Request } from 'express';
 
 export const graphQlResolvers = {
 	users: async () => {
@@ -36,7 +37,7 @@ export const graphQlResolvers = {
 		const profile = ProfileModel.findOne({ _id: _id });
 		return profile;
 	},
-	storePost: async ({ input }) => {
+	storePost: async ({ input }: { input: IPostInputDTO } , args: Request) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
@@ -45,6 +46,31 @@ export const graphQlResolvers = {
 		if (Object.keys(errors).length > 0) {
 			throw new ValidationError(errors, errors['text'][0]);
 		}
-		return { _id: 1 };
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = new PostModel({
+			text: data.text,
+			name: args.currentUser.name,
+			avatar: args.currentUser.avatar,
+			user: args.currentUser._id
+		});
+		return post;
+	},
+	updatePost: async ({ postId, input }: { postId: string, input: IPostInputDTO } , args: Request) => {
+		const [data, errors] = validate(input, value => ({
+			text: value('text')
+				.notEmpty()
+				.isLength({ min: 8, max: 50 }),
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors, errors['text'][0]);
+		}
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = PostModel.findOne({ _id: postId });
+		return post;
+	},
+	destroyPost: async ({ postId }: { postId: string } , args: Request) => {
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = PostModel.findOne({ _id: postId });
+		return post;
 	},
 };

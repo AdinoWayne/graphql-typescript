@@ -57,8 +57,19 @@ export const graphQlSchema = buildSchema(`
           text: String!
         }
 
+        input postUpdateInput {
+          _id: ID!
+          text: String!
+        }
+
+        input postDeleteInput {
+          _id: ID!
+        }
+
         type Mutation {
           storePost(input: postInput): Post
+          updatePost(postId: ID!, input: postUpdateInput): Post
+          destroyPost(postId: ID!): Post
         }
 
         schema {
