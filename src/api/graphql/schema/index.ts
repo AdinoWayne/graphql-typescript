@@ -66,9 +66,8 @@ export const graphQlSchema = buildSchema(`
         }
 
         input likeInput {
-          _id: ID!
+          _id: ID
           type: String!
-          modelType: String!
         }
 
         type MutationResponse {
@@ -79,8 +78,8 @@ export const graphQlSchema = buildSchema(`
           storePost(input: postInput): Post
           updatePost(postId: ID!, input: postUpdateInput): Post
           destroyPost(postId: ID!): Post
-          storeLike(input: likeInput): MutationResponse
-          destroyLike(input: likeInput): MutationResponse
+          storeLike(postId: ID!, input: likeInput): MutationResponse
+          destroyLike(postId: ID!): MutationResponse
         }
 
         schema {

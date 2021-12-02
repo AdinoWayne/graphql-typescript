@@ -1,7 +1,7 @@
 import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
-import { ILikeInputDTO, IPost, IPostInputDTO, likeType, modelType } from '../../../interfaces/IPost';
+import { ILikeInputDTO, IPost, IPostInputDTO, likeType } from '../../../interfaces/IPost';
 import { IProfile } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
@@ -94,12 +94,58 @@ export const graphQlResolvers = {
 
 		return postObject;
 	},
-	storeLike: async ({ input }: { input: ILikeInputDTO }, args: Request) => {
-		console.log(input, args);
-		return {};
+	storePostLike: async ({ postId, input }: { postId: string; input: ILikeInputDTO }, args: Request) => {
+		const [data, errors] = validate(input, value => ({
+			type: value('type')
+				.notEmpty()
+				.toNumber()
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors, errors['text'][0]);
+		}
+		// Check type
+		if (!likeType[data.type]) {
+			throw new Error('Invalid type');
+		}
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId });
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check if the post has already been liked
+		if (
+			post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0
+		) {
+			throw new Error('Post already liked');
+		}
+		post.likes.unshift({ user: args.currentUser._id, type: data.type });
+
+		await post.save();
+
+		return { _id: postId };
 	},
-	destroyLike: async ({ input }: { input: ILikeInputDTO }, args: Request) => {
-		console.log(input, args);
-		return {};
+	destroyLike: async ({ postId }: { postId: string }, args: Request) => {
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId });
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check if the post has already been liked
+		if (
+			post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length === 0
+		) {
+			throw new Error('Post has not yet been liked');
+		}
+
+		// Get remove index
+		const removeIndex = post.likes
+			.map(like => like.user.toString())
+			.indexOf(args.currentUser._id);
+
+		post.likes.splice(removeIndex, 1);
+
+		await post.save();
+
+		return { _id: postId };
 	},
 };

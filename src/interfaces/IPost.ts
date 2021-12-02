@@ -5,8 +5,9 @@ export interface IPost {
 	avatar: string;
 	user: any;
 	likes: {
-		_id: string;
-		user: any;
+		_id?: string;
+		user: string;
+		type?: number;
 	}[];
 	comments: {
 		_id: string;
@@ -26,15 +27,9 @@ export interface IPostInputDTO {
 export interface ILikeInputDTO {
 	_id: string;
 	type: likeType;
-	modelType: modelType;
 }
 
 export enum likeType {
 	Like = 1,
 	DisLike = 2,
-}
-
-export enum modelType {
-	Post = 1,
-	Comment = 2,
 }
