@@ -1,7 +1,7 @@
 import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
-import { IPost, IPostInputDTO } from '../../../interfaces/IPost';
+import { ILikeInputDTO, IPost, IPostInputDTO, likeType, modelType } from '../../../interfaces/IPost';
 import { IProfile } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
@@ -37,7 +37,7 @@ export const graphQlResolvers = {
 		const profile = ProfileModel.findOne({ _id: _id });
 		return profile;
 	},
-	storePost: async ({ input }: { input: IPostInputDTO } , args: Request) => {
+	storePost: async ({ input }: { input: IPostInputDTO }, args: Request) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
@@ -51,11 +51,11 @@ export const graphQlResolvers = {
 			text: data.text,
 			name: args.currentUser.name,
 			avatar: args.currentUser.avatar,
-			user: args.currentUser._id
+			user: args.currentUser._id,
 		});
 		return post;
 	},
-	updatePost: async ({ postId, input }: { postId: string, input: IPostInputDTO } , args: Request) => {
+	updatePost: async ({ postId, input }: { postId: string; input: IPostInputDTO }, args: Request) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
@@ -65,12 +65,41 @@ export const graphQlResolvers = {
 			throw new ValidationError(errors, errors['text'][0]);
 		}
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = PostModel.findOne({ _id: postId });
+		const post = await PostModel.findOne({ _id: postId });
+		// Check post
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check user
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		post.text = data.text;
+		await post.save();
 		return post;
 	},
-	destroyPost: async ({ postId }: { postId: string } , args: Request) => {
+	destroyPost: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = PostModel.findOne({ _id: postId });
-		return post;
+		const post = await PostModel.findOne({ _id: postId });
+		// Check post
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check user
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		const postObject = post.toObject();
+		await post.remove();
+
+		return postObject;
+	},
+	storeLike: async ({ input }: { input: ILikeInputDTO }, args: Request) => {
+		console.log(input, args);
+		return {};
+	},
+	destroyLike: async ({ input }: { input: ILikeInputDTO }, args: Request) => {
+		console.log(input, args);
+		return {};
 	},
 };

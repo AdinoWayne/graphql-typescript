@@ -22,3 +22,19 @@ export interface IPost {
 export interface IPostInputDTO {
 	text: string;
 }
+
+export interface ILikeInputDTO {
+	_id: string;
+	type: likeType;
+	modelType: modelType;
+}
+
+export enum likeType {
+	Like = 1,
+	DisLike = 2,
+}
+
+export enum modelType {
+	Post = 1,
+	Comment = 2,
+}
