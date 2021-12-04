@@ -101,7 +101,7 @@ export const graphQlResolvers = {
 				.toNumber()
 		}));
 		if (Object.keys(errors).length > 0) {
-			throw new ValidationError(errors, errors['text'][0]);
+			throw new ValidationError(errors, errors['type'][0]);
 		}
 		// Check type
 		if (!likeType[data.type]) {
@@ -124,7 +124,7 @@ export const graphQlResolvers = {
 
 		return { _id: postId };
 	},
-	destroyLike: async ({ postId }: { postId: string }, args: Request) => {
+	destroyPostLike: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
 		const post = await PostModel.findOne({ _id: postId });
 		if (!post) {
@@ -148,4 +148,83 @@ export const graphQlResolvers = {
 
 		return { _id: postId };
 	},
+	storeComment: async ({ postId, input}: { postId: string, input: IPostInputDTO}, args: Request) => {
+		const [data, errors] = validate(input, value => ({
+			text: value('text')
+				.notEmpty()
+				.isLength({ min: 8, max: 50 }),
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors, errors['text'][0]);
+		}
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId});
+		const newComment = {
+			text: data.text,
+			name: args.currentUser.name,
+			avatar: args.currentUser.avatar,
+			user: args.currentUser._id
+		};
+		post.comments.unshift(newComment);
+		await post.save();
+
+		return { _id: postId};
+	},
+	updateComment: async({ postId, commentId, input}: { postId: string, commentId: string, input: IPostInputDTO}, args: Request) => {
+		const [data, errors] = validate(input, value => ({
+			text: value('text')
+				.notEmpty()
+				.isLength({ min: 8, max: 50 }),
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors, errors['text'][0]);
+		}
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId});
+		// Pull out comment
+		const comment = post.comments.find(
+			comment => comment._id.toString() === commentId.toString()
+		);
+		// Make sure comment exists
+		if (!comment) {
+			throw new Error('Comment does not exist');
+		}
+		// Check user
+		if (comment.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		// Get remove index
+		const updateIndex = post.comments
+			.map(comment => comment._id)
+			.indexOf(commentId);
+		post.comments[updateIndex].text = data.text;
+		post.save();
+		return { _id: postId};
+	},
+	destroyComment: async ({ postId, commentId}: { postId: string, commentId: string}, args: Request) => {
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId});
+		// Pull out comment
+		const comment = post.comments.find(
+			comment => comment._id.toString() === commentId.toString()
+		);
+		// Make sure comment exists
+		if (!comment) {
+			throw new Error('Comment does not exist');
+		}
+		// Check user
+		if (comment.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		// Get remove index
+		const removeIndex = post.comments
+			.map(comment => comment._id)
+			.indexOf(commentId);
+
+		post.comments.splice(removeIndex, 1);
+
+		await post.save();
+
+		return { _id: postId};
+	}
 };

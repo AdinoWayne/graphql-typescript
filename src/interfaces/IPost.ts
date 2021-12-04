@@ -10,12 +10,12 @@ export interface IPost {
 		type?: number;
 	}[];
 	comments: {
-		_id: string;
+		_id?: string;
 		text: string;
 		name: string;
 		avatar: string;
 		user: any;
-		date: Date;
+		date?: Date;
 	}[];
 	date: Date;
 }
