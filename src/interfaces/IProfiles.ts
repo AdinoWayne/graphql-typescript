@@ -37,5 +37,16 @@ export interface IProfile {
 }
 
 export interface IProfileInputDTO {
-	text: string;
+	status: string;
+	skills: string;
+	company?: string;
+	website?: string;
+	location?: string;
+	bio?: string;
+	githubusername?: string;
+	youtube?: string;
+	twitter?: string;
+	facebook?: string;
+	linkedin?: string;
+	instagram?: string;
 }

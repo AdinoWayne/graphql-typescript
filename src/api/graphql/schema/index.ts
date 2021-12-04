@@ -71,6 +71,18 @@ export const graphQlSchema = buildSchema(`
           type: String!
         }
 
+        input profileInput {
+          status: String!
+          skills: String!
+          website: String
+          location: String
+          bio: String
+          githubusername: String
+          twitter: String
+          facebook: String
+          youtube: String
+        }
+
         type MutationResponse {
           _id: ID
         }
@@ -84,6 +96,8 @@ export const graphQlSchema = buildSchema(`
           storeComment(postId: ID!, input: postUpdateInput): MutationResponse
           updateComment(postId: ID!, commentId: ID!, input: postUpdateInput): MutationResponse
           destroyComment(postId: ID!, commentId: ID!): MutationResponse
+          storeProfile(input: profileInput): Profile
+          destroyProfile(profileId: ID!): Profile
         }
 
         schema {

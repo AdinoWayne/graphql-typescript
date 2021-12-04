@@ -2,7 +2,7 @@ import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
 import { ILikeInputDTO, IPost, IPostInputDTO, likeType } from '../../../interfaces/IPost';
-import { IProfile } from '../../../interfaces/IProfiles';
+import { IProfile, IProfileInputDTO } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
 
@@ -226,5 +226,69 @@ export const graphQlResolvers = {
 		await post.save();
 
 		return { _id: postId};
-	}
+	},
+	storeProfile: async ({ input }: { input: IProfileInputDTO }, args: Request) => {
+		const [data, errors] = validate(input, value => ({
+			status: value('status')
+				.notEmpty()
+				.isLength({ min: 1, max: 150 }),
+			skills: value('skills')
+				.notEmpty()
+				.isLength({ min: 1, max: 50 }),
+		}));
+		if (Object.keys(errors).length > 0) {
+			throw new ValidationError(errors);
+		}
+
+		// Build profile object
+		const profileFields:any = {};
+		profileFields['user'] = args.currentUser._id;
+		if (input.company) profileFields.company = input.company;
+		if (input.website) profileFields.website = input.website;
+		if (input.location) profileFields.location = input.location;
+		if (input.bio) profileFields.bio = input.bio;
+		if (data.status) profileFields.status = data.status;
+		if (input.githubusername) profileFields.githubusername = input.githubusername;
+		if (data.skills) {
+			profileFields.skills = data.skills.split(',').map(skill => skill.trim());
+		}
+		
+		// Build social object
+		profileFields['social'] = {};
+		if (input.youtube) profileFields.social.youtube = input.youtube;
+		if (input.twitter) profileFields.social.twitter = input.twitter;
+		if (input.facebook) profileFields.social.facebook = input.facebook;
+		if (input.linkedin) profileFields.social.linkedin = input.linkedin;
+		if (input.instagram) profileFields.social.instagram = input.instagram;
+
+		try {
+			const profileModel = Container.get('profileModel') as mongoose.Model<IPost & mongoose.Document>;
+			// Using upsert option (creates new doc if no match is found):
+			let profile = await profileModel.findOneAndUpdate(
+			  { user: args.currentUser._id },
+			  { $set: profileFields },
+			  { new: true, upsert: true }
+			);
+			return profile;
+		} catch (err) {
+			throw new ValidationError(err);
+		}
+	},
+	destroyProfile: async ({ profileId }: { profileId: string }, args: Request) => {
+		const profileModel = Container.get('profileModel') as mongoose.Model<IProfile & mongoose.Document>;
+		const profile = await profileModel.findOne({ _id: profileId });
+		// Check profile
+		if (!profile) {
+			throw new Error('Profile Not Found');
+		}
+		// Check user
+		if (profile.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		const profileObject = profile.toObject();
+		await profile.remove();
+
+		return profileObject;
+	},
+	
 };
