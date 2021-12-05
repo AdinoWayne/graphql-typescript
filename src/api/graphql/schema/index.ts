@@ -71,6 +71,26 @@ export const graphQlSchema = buildSchema(`
           type: String!
         }
 
+        input Experience {
+          _id: ID
+          title: String
+          company: String
+          location: String
+          from: String
+          current: Boolean
+          description: String
+        }
+
+        input Education {
+          _id: ID
+          school: String
+          degree: String
+          fieldofstudy: String
+          from: String
+          to: String
+          description: String
+        }
+
         input profileInput {
           status: String!
           skills: String!
@@ -81,6 +101,8 @@ export const graphQlSchema = buildSchema(`
           twitter: String
           facebook: String
           youtube: String
+          experience: [Experience]
+          education: [Education]
         }
 
         type MutationResponse {

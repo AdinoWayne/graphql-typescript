@@ -49,4 +49,22 @@ export interface IProfileInputDTO {
 	facebook?: string;
 	linkedin?: string;
 	instagram?: string;
+	experience?: {
+		title: string;
+		company: string;
+		location: string;
+		from: Date;
+		to: Date;
+		current: boolean;
+		description: string;
+	}[],
+	education: {
+		school: string;
+		degree: string;
+		fieldofstudy: string;
+		from: Date;
+		to: Date;
+		current: boolean;
+		description: string;
+	}[];
 }
