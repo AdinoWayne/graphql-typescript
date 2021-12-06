@@ -98,7 +98,7 @@ export const graphQlResolvers = {
 		const [data, errors] = validate(input, value => ({
 			type: value('type')
 				.notEmpty()
-				.toNumber()
+				.toNumber(),
 		}));
 		if (Object.keys(errors).length > 0) {
 			throw new ValidationError(errors, errors['type'][0]);
@@ -113,9 +113,7 @@ export const graphQlResolvers = {
 			throw new Error('Post Not Found');
 		}
 		// Check if the post has already been liked
-		if (
-			post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0
-		) {
+		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0) {
 			throw new Error('Post already liked');
 		}
 		post.likes.unshift({ user: args.currentUser._id, type: data.type });
@@ -131,16 +129,12 @@ export const graphQlResolvers = {
 			throw new Error('Post Not Found');
 		}
 		// Check if the post has already been liked
-		if (
-			post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length === 0
-		) {
+		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length === 0) {
 			throw new Error('Post has not yet been liked');
 		}
 
 		// Get remove index
-		const removeIndex = post.likes
-			.map(like => like.user.toString())
-			.indexOf(args.currentUser._id);
+		const removeIndex = post.likes.map(like => like.user.toString()).indexOf(args.currentUser._id);
 
 		post.likes.splice(removeIndex, 1);
 
@@ -148,7 +142,7 @@ export const graphQlResolvers = {
 
 		return { _id: postId };
 	},
-	storeComment: async ({ postId, input}: { postId: string, input: IPostInputDTO}, args: Request) => {
+	storeComment: async ({ postId, input }: { postId: string; input: IPostInputDTO }, args: Request) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
@@ -158,19 +152,22 @@ export const graphQlResolvers = {
 			throw new ValidationError(errors, errors['text'][0]);
 		}
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = await PostModel.findOne({ _id: postId});
+		const post = await PostModel.findOne({ _id: postId });
 		const newComment = {
 			text: data.text,
 			name: args.currentUser.name,
 			avatar: args.currentUser.avatar,
-			user: args.currentUser._id
+			user: args.currentUser._id,
 		};
 		post.comments.unshift(newComment);
 		await post.save();
 
-		return { _id: postId};
+		return { _id: postId };
 	},
-	updateComment: async({ postId, commentId, input}: { postId: string, commentId: string, input: IPostInputDTO}, args: Request) => {
+	updateComment: async (
+		{ postId, commentId, input }: { postId: string; commentId: string; input: IPostInputDTO },
+		args: Request,
+	) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
@@ -180,11 +177,9 @@ export const graphQlResolvers = {
 			throw new ValidationError(errors, errors['text'][0]);
 		}
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = await PostModel.findOne({ _id: postId});
+		const post = await PostModel.findOne({ _id: postId });
 		// Pull out comment
-		const comment = post.comments.find(
-			comment => comment._id.toString() === commentId.toString()
-		);
+		const comment = post.comments.find(comment => comment._id.toString() === commentId.toString());
 		// Make sure comment exists
 		if (!comment) {
 			throw new Error('Comment does not exist');
@@ -194,20 +189,16 @@ export const graphQlResolvers = {
 			throw new Error('User not authorized');
 		}
 		// Get remove index
-		const updateIndex = post.comments
-			.map(comment => comment._id)
-			.indexOf(commentId);
+		const updateIndex = post.comments.map(comment => comment._id).indexOf(commentId);
 		post.comments[updateIndex].text = data.text;
 		post.save();
-		return { _id: postId};
+		return { _id: postId };
 	},
-	destroyComment: async ({ postId, commentId}: { postId: string, commentId: string}, args: Request) => {
+	destroyComment: async ({ postId, commentId }: { postId: string; commentId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = await PostModel.findOne({ _id: postId});
+		const post = await PostModel.findOne({ _id: postId });
 		// Pull out comment
-		const comment = post.comments.find(
-			comment => comment._id.toString() === commentId.toString()
-		);
+		const comment = post.comments.find(comment => comment._id.toString() === commentId.toString());
 		// Make sure comment exists
 		if (!comment) {
 			throw new Error('Comment does not exist');
@@ -217,15 +208,13 @@ export const graphQlResolvers = {
 			throw new Error('User not authorized');
 		}
 		// Get remove index
-		const removeIndex = post.comments
-			.map(comment => comment._id)
-			.indexOf(commentId);
+		const removeIndex = post.comments.map(comment => comment._id).indexOf(commentId);
 
 		post.comments.splice(removeIndex, 1);
 
 		await post.save();
 
-		return { _id: postId};
+		return { _id: postId };
 	},
 	storeProfile: async ({ input }: { input: IProfileInputDTO }, args: Request) => {
 		const [data, errors] = validate(input, value => ({
@@ -241,7 +230,7 @@ export const graphQlResolvers = {
 		}
 
 		// Build profile object
-		const profileFields:any = {};
+		const profileFields: any = {};
 		profileFields['user'] = args.currentUser._id;
 		if (input.company) profileFields.company = input.company;
 		if (input.website) profileFields.website = input.website;
@@ -252,7 +241,7 @@ export const graphQlResolvers = {
 		if (data.skills) {
 			profileFields.skills = data.skills.split(',').map(skill => skill.trim());
 		}
-		
+
 		// Build social object
 		profileFields['social'] = {};
 		if (input.youtube) profileFields.social.youtube = input.youtube;
@@ -285,8 +274,8 @@ export const graphQlResolvers = {
 					from: data.from,
 					to: input.experience[index].to,
 					current: input.experience[index].current,
-					description: input.experience[index].description
-				})
+					description: input.experience[index].description,
+				});
 			});
 		}
 
@@ -309,7 +298,6 @@ export const graphQlResolvers = {
 					to: value('to'),
 					current: value('current'),
 					description: value('description'),
-
 				}));
 				if (Object.keys(errors).length > 0) {
 					throw new ValidationError(errors);
@@ -321,8 +309,8 @@ export const graphQlResolvers = {
 					from: data.from,
 					to: data.to,
 					current: data.current,
-					description: data.description
-				})
+					description: data.description,
+				});
 			});
 		}
 
@@ -330,9 +318,9 @@ export const graphQlResolvers = {
 			const profileModel = Container.get('profileModel') as mongoose.Model<IPost & mongoose.Document>;
 			// Using upsert option (creates new doc if no match is found):
 			let profile = await profileModel.findOneAndUpdate(
-			  { user: args.currentUser._id },
-			  { $set: profileFields },
-			  { new: true, upsert: true }
+				{ user: args.currentUser._id },
+				{ $set: profileFields },
+				{ new: true, upsert: true },
 			);
 			return profile;
 		} catch (err) {
@@ -355,5 +343,4 @@ export const graphQlResolvers = {
 
 		return profileObject;
 	},
-	
 };
