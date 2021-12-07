@@ -24,7 +24,7 @@ const Post = new mongoose.Schema({
 			},
 			type: {
 				type: String,
-			}
+			},
 		},
 	],
 	comments: [

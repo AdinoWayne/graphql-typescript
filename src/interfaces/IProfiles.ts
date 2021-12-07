@@ -57,7 +57,7 @@ export interface IProfileInputDTO {
 		to: Date;
 		current: boolean;
 		description: string;
-	}[],
+	}[];
 	education: {
 		school: string;
 		degree: string;
