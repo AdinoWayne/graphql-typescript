@@ -22,6 +22,11 @@ export const graphQlResolvers = {
 		const posts = await PostModel.find({});
 		return posts;
 	},
+	searchPosts: async ({filter}: { filter: any}) => {
+		console.log(filter);
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		return [];
+	},
 	post: async (_id: string) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
 		const post = PostModel.findOne({ _id: _id });

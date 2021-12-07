@@ -45,12 +45,21 @@ export const graphQlSchema = buildSchema(`
           date: Date
         }
 
+        input SPost {
+          name: String
+          text: String
+          startDate: Date
+          page: String
+          endDate: Date
+        }
+
         type RootQuery {
           users: [User]
           user(_id: ID!): User
           profiles: [Profile]
           profile(_id: ID!): Profile
           posts: [Post]
+          searchPosts(filter: SPost): [Post]
           post(_id: ID!): Post
         }
 
