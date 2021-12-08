@@ -1,7 +1,7 @@
 import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { IUser } from '../../../interfaces/IUser';
-import { ILikeInputDTO, IPost, IPostInputDTO, likeType } from '../../../interfaces/IPost';
+import { IPost, IPostInputDTO } from '../../../interfaces/IPost';
 import { IProfile, IProfileInputDTO } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
@@ -117,33 +117,25 @@ export const graphQlResolvers = {
 	},
 	destroyArrPost: async ({ postIds }: { postIds: string[] }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = await PostModel.findOne({ _id: postIds });
+		const posts = await PostModel.find({ _id: {
+			$in: postIds
+		} });
 		// Check post
-		if (!post) {
+		if (!posts) {
 			throw new Error('Post Not Found');
 		}
-		// Check user
-		if (post.user.toString() !== args.currentUser._id.toString()) {
-			throw new Error('User not authorized');
-		}
-		const postObject = post.toObject();
-		await post.remove();
-
-		return postObject;
+		posts.forEach(element => {
+			// Check user
+			if (element.user.toString() !== args.currentUser._id.toString()) {
+				throw new Error('User not authorized');
+			}
+		});
+		await PostModel.remove({ _id: {
+			$in: postIds
+		} });
+		return {msg: 'Delete Successfully!'};
 	},
-	storePostLike: async ({ postId, input }: { postId: string; input: ILikeInputDTO }, args: Request) => {
-		const [data, errors] = validate(input, value => ({
-			type: value('type')
-				.notEmpty()
-				.toNumber(),
-		}));
-		if (Object.keys(errors).length > 0) {
-			throw new ValidationError(errors, errors['type'][0]);
-		}
-		// Check type
-		if (!likeType[data.type]) {
-			throw new Error('Invalid type');
-		}
+	storePostLike: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
 		const post = await PostModel.findOne({ _id: postId });
 		if (!post) {
@@ -153,11 +145,11 @@ export const graphQlResolvers = {
 		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0) {
 			throw new Error('Post already liked');
 		}
-		post.likes.unshift({ user: args.currentUser._id, type: data.type });
+		post.likes.unshift({ user: args.currentUser._id });
 
 		await post.save();
 
-		return { _id: postId };
+		return post;
 	},
 	destroyPostLike: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
@@ -177,13 +169,30 @@ export const graphQlResolvers = {
 
 		await post.save();
 
-		return { _id: postId };
+		return post;
+	},
+	toggleLike: async ({ postId }: { postId: string }, args: Request) => {
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postId });
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check if the post has already been liked
+		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length === 0) {
+			post.likes.unshift({ user: args.currentUser._id });
+		} else {
+			// Get remove index
+			const removeIndex = post.likes.map(like => like.user.toString()).indexOf(args.currentUser._id);
+			post.likes.splice(removeIndex, 1);
+		}
+		await post.save();
+		return post;
 	},
 	storeComment: async ({ postId, input }: { postId: string; input: IPostInputDTO }, args: Request) => {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
-				.isLength({ min: 8, max: 50 }),
+				.isLength({ min: 2, max: 50 }),
 		}));
 		if (Object.keys(errors).length > 0) {
 			throw new ValidationError(errors, errors['text'][0]);
@@ -199,7 +208,7 @@ export const graphQlResolvers = {
 		post.comments.unshift(newComment);
 		await post.save();
 
-		return { _id: postId };
+		return post;
 	},
 	updateComment: async (
 		{ postId, commentId, input }: { postId: string; commentId: string; input: IPostInputDTO },

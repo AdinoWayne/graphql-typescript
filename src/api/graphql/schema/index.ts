@@ -75,11 +75,6 @@ export const graphQlSchema = buildSchema(`
           _id: ID!
         }
 
-        input likeInput {
-          _id: ID
-          type: String!
-        }
-
         input Experience {
           _id: ID
           title: String
@@ -118,14 +113,19 @@ export const graphQlSchema = buildSchema(`
           _id: ID
         }
 
+        type ResponseMsg {
+          msg: String
+        }
+
         type Mutation {
           storePost(input: postInput): Post
           updatePost(postId: ID!, input: postUpdateInput): Post
           destroyPost(postId: ID!): Post
-          storePostLike(postId: ID!, input: likeInput): MutationResponse
+          storePostLike(postId: ID!): MutationResponse
           destroyPostLike(postId: ID!): MutationResponse
-          destroyArrPost(postIds: [ID!]): MutationResponse
-          storeComment(postId: ID!, input: postUpdateInput): MutationResponse
+          toggleLike(postId: ID!): Post
+          destroyArrPost(postIds: [ID!]): ResponseMsg
+          storeComment(postId: ID!, input: postUpdateInput): Post
           updateComment(postId: ID!, commentId: ID!, input: postUpdateInput): MutationResponse
           destroyComment(postId: ID!, commentId: ID!): MutationResponse
           storeProfile(input: profileInput): Profile

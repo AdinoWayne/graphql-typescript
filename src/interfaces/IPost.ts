@@ -25,8 +25,8 @@ export interface IPostInputDTO {
 }
 
 export interface ILikeInputDTO {
-	_id: string;
-	type: likeType;
+	_id?: string;
+	type?: likeType;
 }
 
 export enum likeType {
