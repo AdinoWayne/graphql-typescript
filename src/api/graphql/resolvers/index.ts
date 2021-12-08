@@ -22,10 +22,25 @@ export const graphQlResolvers = {
 		const posts = await PostModel.find({});
 		return posts;
 	},
-	searchPosts: async ({filter}: { filter: any}) => {
-		console.log(filter);
+	searchPosts: async ({ filter }: { filter: any }) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		return [];
+		let query = {};
+		if (filter.startDate || filter.endDate) {
+			query = {
+				date: {
+					$gte: new Date(filter.startDate),
+					$lte: new Date(filter.endDate),
+				},
+			};
+		}
+		if (filter.name) {
+			query['name'] = filter.name;
+		}
+		const posts = await PostModel.find(query)
+			.limit(10)
+			.skip(filter.page ? parseInt(filter.page, 10) : 1)
+			.exec();
+		return posts;
 	},
 	post: async (_id: string) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
