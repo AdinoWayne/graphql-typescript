@@ -61,7 +61,7 @@ export const graphQlResolvers = {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
 				.notEmpty()
-				.isLength({ min: 8, max: 50 }),
+				.isLength({ min: 2, max: 1000 }),
 		}));
 		if (Object.keys(errors).length > 0) {
 			throw new ValidationError(errors, errors['text'][0]);
@@ -73,6 +73,7 @@ export const graphQlResolvers = {
 			avatar: args.currentUser.avatar,
 			user: args.currentUser._id,
 		});
+		post.save();
 		return post;
 	},
 	updatePost: async ({ postId, input }: { postId: string; input: IPostInputDTO }, args: Request) => {
@@ -101,6 +102,22 @@ export const graphQlResolvers = {
 	destroyPost: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
 		const post = await PostModel.findOne({ _id: postId });
+		// Check post
+		if (!post) {
+			throw new Error('Post Not Found');
+		}
+		// Check user
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			throw new Error('User not authorized');
+		}
+		const postObject = post.toObject();
+		await post.remove();
+
+		return postObject;
+	},
+	destroyArrPost: async ({ postIds }: { postIds: string[] }, args: Request) => {
+		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		const post = await PostModel.findOne({ _id: postIds });
 		// Check post
 		if (!post) {
 			throw new Error('Post Not Found');

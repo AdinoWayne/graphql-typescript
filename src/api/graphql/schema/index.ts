@@ -124,6 +124,7 @@ export const graphQlSchema = buildSchema(`
           destroyPost(postId: ID!): Post
           storePostLike(postId: ID!, input: likeInput): MutationResponse
           destroyPostLike(postId: ID!): MutationResponse
+          destroyArrPost(postIds: [ID!]): MutationResponse
           storeComment(postId: ID!, input: postUpdateInput): MutationResponse
           updateComment(postId: ID!, commentId: ID!, input: postUpdateInput): MutationResponse
           destroyComment(postId: ID!, commentId: ID!): MutationResponse
