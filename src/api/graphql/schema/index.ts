@@ -132,8 +132,13 @@ export const graphQlSchema = buildSchema(`
           destroyProfile(profileId: ID!): Profile
         }
 
+        type Subscription {
+          commentAdded(postId: ID!): Comment
+        }
+
         schema {
-            query: RootQuery,
+            query: RootQuery
             mutation: Mutation
+            subscription: Subscription
         }
   `);

@@ -16,7 +16,7 @@ export default (app: Router) => {
 		graphqlHTTP({
 			schema: rootSchema,
 			rootValue: rootResolver,
-			graphiql: true,
+			graphiql: { defaultQuery: `ws://127.0.0.1:5000/subscriptions` },
 		}),
 	);
 };

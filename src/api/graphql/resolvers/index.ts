@@ -1,10 +1,12 @@
 import { Container } from 'typedi';
 import mongoose from 'mongoose';
+import { pubsub } from '../subscriptions';
 import { IUser } from '../../../interfaces/IUser';
 import { IPost, IPostInputDTO } from '../../../interfaces/IPost';
 import { IProfile, IProfileInputDTO } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
+import { withFilter } from 'graphql-subscriptions';
 
 export const graphQlResolvers = {
 	users: async () => {
@@ -117,9 +119,11 @@ export const graphQlResolvers = {
 	},
 	destroyArrPost: async ({ postIds }: { postIds: string[] }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const posts = await PostModel.find({ _id: {
-			$in: postIds
-		} });
+		const posts = await PostModel.find({
+			_id: {
+				$in: postIds,
+			},
+		});
 		// Check post
 		if (!posts) {
 			throw new Error('Post Not Found');
@@ -130,10 +134,12 @@ export const graphQlResolvers = {
 				throw new Error('User not authorized');
 			}
 		});
-		await PostModel.remove({ _id: {
-			$in: postIds
-		} });
-		return {msg: 'Delete Successfully!'};
+		await PostModel.remove({
+			_id: {
+				$in: postIds,
+			},
+		});
+		return { msg: 'Delete Successfully!' };
 	},
 	storePostLike: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
@@ -206,6 +212,7 @@ export const graphQlResolvers = {
 			user: args.currentUser._id,
 		};
 		post.comments.unshift(newComment);
+		pubsub.publish('commentAdded', { commentAdded: newComment });
 		await post.save();
 
 		return post;
@@ -388,5 +395,14 @@ export const graphQlResolvers = {
 		await profile.remove();
 
 		return profileObject;
+	},
+	commentAdded: {
+		subscribe: withFilter(
+			() => pubsub.asyncIterator('commentAdded'),
+			(payload, args) => {
+				console.log(payload.commentAdded, args);
+				return payload.commentAdded._id === args.postId;
+			},
+		),
 	},
 };
