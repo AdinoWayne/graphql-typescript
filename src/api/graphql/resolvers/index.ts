@@ -212,7 +212,8 @@ export const graphQlResolvers = {
 			user: args.currentUser._id,
 		};
 		post.comments.unshift(newComment);
-		pubsub.publish('commentAdded', { commentAdded: newComment });
+		const idNewComment = post.comments[0];
+		pubsub.publish('commentAdded', { commentAdded: idNewComment, postId });
 		await post.save();
 
 		return post;
@@ -396,13 +397,15 @@ export const graphQlResolvers = {
 
 		return profileObject;
 	},
-	commentAdded: {
-		subscribe: withFilter(
-			() => pubsub.asyncIterator('commentAdded'),
-			(payload, args) => {
-				console.log(payload.commentAdded, args);
-				return payload.commentAdded._id === args.postId;
-			},
-		),
+	// commentAdded: async ({ postId }: { postId: string }, args: Request) => {
+	// 	console.log(postId);
+	// 	return await pubsub.asyncIterator('commentAdded')
+	// },
+	commentAdded: async ({ postId }: { postId: string }, args: Request) => {
+		console.log(postId, args);
+		return await (withFilter(() => pubsub.asyncIterator('commentAdded'), (payload, variables, context) => {
+			console.log(payload, variables, context);
+			return payload.postId === variables.postId;
+		}))(args, { postId});
 	},
 };

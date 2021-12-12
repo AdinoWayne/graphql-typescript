@@ -3,10 +3,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import routes from '../api';
 import config from '../config';
-import { graphQlSchema as rootSchema } from '../api/graphql/schema/index';
-import { graphQlResolvers as rootResolver } from '../api/graphql/resolvers/index';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { execute, subscribe } from 'graphql';
 
 export default ({ app }: { app: express.Application }) => {
 	app.get('/status', (_req, res) => {
@@ -63,12 +59,4 @@ export default ({ app }: { app: express.Application }) => {
 			},
 		});
 	});
-
-	// SubscriptionServer.create(
-	// 	{ schema: rootSchema, rootValue: rootResolver, execute, subscribe },
-	// 	{
-	// 		server: app, // Listens for 'upgrade' websocket events on the raw server
-	// 		path: '/subscriptions',
-	// 	},
-	// );
 };
