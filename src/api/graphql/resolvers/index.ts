@@ -7,6 +7,7 @@ import { IProfile, IProfileInputDTO } from '../../../interfaces/IProfiles';
 import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
 import { withFilter } from 'graphql-subscriptions';
+import { IEvent } from '../../../interfaces/IEvent';
 
 export const graphQlResolvers = {
 	users: async () => {
@@ -64,13 +65,18 @@ export const graphQlResolvers = {
 			text: value('text')
 				.notEmpty()
 				.isLength({ min: 2, max: 1000 }),
+			tags: value('tags')
 		}));
 		if (Object.keys(errors).length > 0) {
 			throw new ValidationError(errors, errors['text'][0]);
 		}
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+		if (!data.tags) {
+			data.tags = [];
+		}
 		const post = new PostModel({
 			text: data.text,
+			tags: data.tags,
 			name: args.currentUser.name,
 			avatar: args.currentUser.avatar,
 			user: args.currentUser._id,
@@ -142,20 +148,37 @@ export const graphQlResolvers = {
 		return { msg: 'Delete Successfully!' };
 	},
 	storePostLike: async ({ postId }: { postId: string }, args: Request) => {
-		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
-		const post = await PostModel.findOne({ _id: postId });
-		if (!post) {
-			throw new Error('Post Not Found');
-		}
-		// Check if the post has already been liked
-		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0) {
-			throw new Error('Post already liked');
-		}
-		post.likes.unshift({ user: args.currentUser._id });
+		try {
+			const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;
+			const EventModel = Container.get('eventModel') as mongoose.Model<IEvent & mongoose.Document>;
+			const post = await PostModel.findOne({ _id: postId });
+			if (!post) {
+				throw new Error('Post Not Found');
+			}
+			// Check if the post has already been liked
+			if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length > 0) {
+				throw new Error('Post already liked');
+			}
+	
+			const event = new EventModel({
+				type: 'LIKE',
+				userId: args.currentUser._id,
+				postId: postId,
+				description: '',
+			});
+	
+			event.save();
+	
+			post.likes.unshift({ user: args.currentUser._id });
+	
+			await post.save();
+	
+			return post;
 
-		await post.save();
-
-		return post;
+		} catch (error) {
+			console.log(error);
+			throw new Error('Server Error!');
+		}
 	},
 	destroyPostLike: async ({ postId }: { postId: string }, args: Request) => {
 		const PostModel = Container.get('postModel') as mongoose.Model<IPost & mongoose.Document>;

@@ -12,6 +12,16 @@ export const graphQlSchema = buildSchema(`
             date: Date
         }
 
+        type Event {
+            _id: ID!
+            type: String
+            userId: String!
+            name: String
+            postId: String!
+            description: String!
+            date: Date
+        }
+
         type Profile {
           _id: ID!
           bio: String
@@ -33,13 +43,13 @@ export const graphQlSchema = buildSchema(`
         type Like {
           _id: ID!
           user: ID!
-          type: String
         }
 
         type Post {
           _id: ID!
           text: String
           name: String
+          tags: [String]
           likes: [Like]
           comments: [Comment]
           date: Date
@@ -65,6 +75,7 @@ export const graphQlSchema = buildSchema(`
 
         input postInput {
           text: String!
+          tags: [String]
         }
 
         input postUpdateInput {

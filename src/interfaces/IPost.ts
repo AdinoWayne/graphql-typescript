@@ -22,6 +22,7 @@ export interface IPost {
 
 export interface IPostInputDTO {
 	text: string;
+	tags?: Array<String>
 }
 
 export interface ILikeInputDTO {

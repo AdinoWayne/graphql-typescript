@@ -20,9 +20,14 @@ export default async ({ expressApp }) => {
 		name: 'profileModel',
 		model: require('../models/profile').default,
 	};
+	const eventModel = {
+		name: 'eventModel',
+		model: require('../models/event').default,
+	};
 	Container.set(userModel.name, userModel.model);
 	Container.set(postModel.name, postModel.model);
 	Container.set(profileModel.name, profileModel.model);
+	Container.set(eventModel.name, eventModel.model);
 	Container.set('logger', LoggerInstance);
 	await expressLoader({ app: expressApp });
 	Logger.info('Express loaded');

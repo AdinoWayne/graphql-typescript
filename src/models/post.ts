@@ -13,6 +13,9 @@ const Post = new mongoose.Schema({
 	name: {
 		type: String,
 	},
+	tags: {
+		type: [String],
+	},
 	avatar: {
 		type: String,
 	},
