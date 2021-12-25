@@ -1,7 +1,7 @@
 {
   "name": "nodejs-typescript",
   "version": "1.0.0",
-  "description": "A 👨🏻‍💻 Node-Typescript/Express/MongoDB Boilerplate with User Authentication and Authorization with JWT support.This is an updated version of Sam Quinn's bulletproof-nodejs implementation.",
+  "description": "",
   "main": "src/app.ts",
   "scripts": {
     "build": "tsc",

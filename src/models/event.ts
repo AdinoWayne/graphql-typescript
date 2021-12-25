@@ -6,13 +6,16 @@ const Event = new mongoose.Schema({
 		type: String,
 	},
 	userId: {
-		type: String,
+		type: mongoose.Schema.Types.ObjectId,
 	},
 	postId: {
-		type: String,
+		type: mongoose.Schema.Types.ObjectId,
 	},
 	description: {
 		type: String,
+	},
+	isRead: {
+		type: Boolean
 	},
 	date: {
 		type: Date,

@@ -49,6 +49,7 @@ export const graphQlSchema = buildSchema(`
           _id: ID!
           text: String
           name: String
+          user: ID
           tags: [String]
           likes: [Like]
           comments: [Comment]
