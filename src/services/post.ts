@@ -23,8 +23,8 @@ export default class PostService {
     }
 
 	public async getEvent(userId: string) {
-		const post = await this.eventModel.findOne({ userId });
-		return post;
+		const event = await this.eventModel.findOne({ userId });
+		return event;
 	}
 
     public async storeComment(input: IPostInputDTO, postId: string, args: Request) {

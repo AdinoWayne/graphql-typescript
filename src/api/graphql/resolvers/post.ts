@@ -13,10 +13,10 @@ export const postResolvers = {
 			throw new Error(error);
 		}
 	},
-	event: async (_id: string) => {
+	event: async ({}, args: Request) => {
 		try {
 			const postServiceInstance = Container.get(PostService);
-			return await postServiceInstance.getEvent(_id);
+			return await postServiceInstance.getEvent(args.currentUser._id);
 		} catch (error) {
 			throw new Error(error);
 		}
