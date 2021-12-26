@@ -13,6 +13,14 @@ export const postResolvers = {
 			throw new Error(error);
 		}
 	},
+	event: async (_id: string) => {
+		try {
+			const postServiceInstance = Container.get(PostService);
+			return await postServiceInstance.getEvent(_id);
+		} catch (error) {
+			throw new Error(error);
+		}
+	},
     searchPosts: async ({ filter }: { filter: any }) => {
         try {
 			const postServiceInstance = Container.get(PostService);

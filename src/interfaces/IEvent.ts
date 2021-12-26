@@ -1,8 +1,13 @@
 export interface IEvent {
 	_id: string;
-	type: string;
 	userId: string;
-	postId: string;
-	description: string;
-	date: Date;
+	events: {
+		_id?: string;
+		postId?: string;
+		type?: string;
+		isRead?: boolean;
+		description?: string;
+		date?: Date;
+	}[];
+	date?: Date;
 }

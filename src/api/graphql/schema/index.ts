@@ -14,12 +14,17 @@ export const graphQlSchema = buildSchema(`
 
         type Event {
             _id: ID!
-            type: String
-            userId: String!
-            name: String
-            postId: String!
-            description: String!
-            date: Date
+            userId: ID
+            events: [eventDetail]
+        }
+
+        type eventDetail {
+          _id: ID!
+          postId: ID
+          type: String
+          description: String
+          isRead: Boolean
+          date: Date
         }
 
         type Profile {
@@ -69,6 +74,7 @@ export const graphQlSchema = buildSchema(`
           user(_id: ID!): User
           profiles: [Profile]
           profile(_id: ID!): Profile
+          event: (_id: ID!): Event
           posts: [Post]
           searchPosts(filter: SPost): [Post]
           post(_id: ID!): Post

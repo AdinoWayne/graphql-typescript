@@ -2,21 +2,29 @@ import { IEvent } from '../interfaces/IEvent';
 import mongoose from 'mongoose';
 
 const Event = new mongoose.Schema({
-	type: {
-		type: String,
-	},
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
 	},
-	postId: {
-		type: mongoose.Schema.Types.ObjectId,
-	},
-	description: {
-		type: String,
-	},
-	isRead: {
-		type: Boolean
-	},
+	events: [
+		{
+			postId: {
+				type: mongoose.Schema.Types.ObjectId,
+			},
+			type: {
+				type: String,
+			},
+			description: {
+				type: String,
+			},
+			isRead: {
+				type: Boolean
+			},
+			date: {
+				type: Date,
+				default: Date.now,
+			},
+		}
+	],
 	date: {
 		type: Date,
 		default: Date.now,

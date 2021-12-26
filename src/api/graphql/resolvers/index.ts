@@ -2,9 +2,6 @@ import { Container } from 'typedi';
 import mongoose from 'mongoose';
 import { pubsub } from '../subscriptions';
 import { IUser } from '../../../interfaces/IUser';
-import { IPost } from '../../../interfaces/IPost';
-import { IProfile, IProfileInputDTO } from '../../../interfaces/IProfiles';
-import { validate, ValidationError } from 'validator-fluent';
 import { Request } from 'express';
 import { withFilter } from 'graphql-subscriptions';
 import { postResolvers } from './post';
@@ -23,10 +20,6 @@ export const graphQlResolvers = {
 	},
 	...postResolvers,
 	...profileResolvers,
-	// commentAdded: async ({ postId }: { postId: string }, args: Request) => {
-	// 	console.log(postId);
-	// 	return await pubsub.asyncIterator('commentAdded')
-	// },
 	commentAdded: async ({ postId }: { postId: string }, args: Request) => {
 		console.log(postId, args);
 		return await (withFilter(() => pubsub.asyncIterator('commentAdded'), (payload, variables, context) => {

@@ -22,6 +22,11 @@ export default class PostService {
 		return post;
     }
 
+	public async getEvent(userId: string) {
+		const post = await this.eventModel.findOne({ userId });
+		return post;
+	}
+
     public async storeComment(input: IPostInputDTO, postId: string, args: Request) {
 		const [data, errors] = validate(input, value => ({
 			text: value('text')
@@ -44,6 +49,38 @@ export default class PostService {
 		pubsub.publish('commentAdded', { commentAdded: idNewComment, postId });
 		await post.save();
 
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			const event = await this.eventModel.findOne({
+				userId: post.user
+			});
+			if (event) {
+				const arrEvents = event.events.filter(el => (el.postId == postId) && el.type === 'COMMENT');
+				const isFullRead = arrEvents.every(el => el.isRead === true);
+				if (arrEvents.length == 0 || (arrEvents.length > 0 && isFullRead)) {
+					event.events.unshift({
+						postId: postId,
+						type: 'COMMENT',
+						description: data.text,
+						isRead: false,
+						date: new Date()
+					})
+					await event.save();
+				}
+			} else {
+				const event = new this.eventModel({
+					userId: post.user
+				});
+				event.events.unshift({
+					postId: postId,
+					type: 'COMMENT',
+					description: data.text,
+					isRead: false,
+					date: new Date()
+				})
+				await event.save();
+			}
+		}
+
 		return post;
     }
 
@@ -55,10 +92,57 @@ export default class PostService {
 		// Check if the post has already been liked
 		if (post.likes.filter(like => like.user.toString() === args.currentUser._id.toString()).length === 0) {
 			post.likes.unshift({ user: args.currentUser._id });
+			if (post.user.toString() !== args.currentUser._id.toString()) {
+				const event = await this.eventModel.findOne({
+					userId: post.user
+				});
+				if (event) {
+					if (!(event.events.filter(el => (el.postId.toString() === postId.toString()) && el.type === 'LIKE').length > 0)) {
+						event.events.unshift({
+							postId: postId,
+							type: 'LIKE',
+							description: '',
+							isRead: false,
+							date: new Date()
+						})
+						await event.save();
+					}
+				} else {
+					const event = new this.eventModel({
+						userId: post.user
+					});
+					event.events.unshift({
+						postId: postId,
+						type: 'LIKE',
+						description: '',
+						isRead: false,
+						date: new Date()
+					})
+					await event.save();
+				}
+			}
 		} else {
 			// Get remove index
 			const removeIndex = post.likes.map(like => like.user.toString()).indexOf(args.currentUser._id);
 			post.likes.splice(removeIndex, 1);
+			if (post.user.toString() !== args.currentUser._id.toString()) {
+				const event = await this.eventModel.findOne({
+					userId: post.user
+				});
+				if (event) {
+					// Get remove index
+					const removeIndex = event.events.filter(element => {
+						if (
+							element.postId == postId &&
+							element.type == 'LIKE'
+						) {
+							return element;
+						}
+					}).map(element => element.postId.toString()).indexOf(args.currentUser._id);
+					event.events.splice(removeIndex, 1);
+					await event.save();
+				}
+			}
 		}
 		await post.save();
 		return post;
@@ -80,6 +164,25 @@ export default class PostService {
 		post.likes.splice(removeIndex, 1);
 
 		await post.save();
+
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			const event = await this.eventModel.findOne({
+				userId: post.user
+			});
+			if (event) {
+				// Get remove index
+				const removeIndex = event.events.filter(element => {
+					if (
+						element.postId == postId &&
+						element.type == 'LIKE'
+					) {
+						return element;
+					}
+				}).map(element => element.postId.toString()).indexOf(args.currentUser._id);
+				event.events.splice(removeIndex, 1);
+				await event.save();
+			}
+		}
 
 		return post;
     }
@@ -203,14 +306,35 @@ export default class PostService {
             throw new Error('Post already liked');
         }
 
-        const event = new this.eventModel({
-            type: 'LIKE',
-            userId: args.currentUser._id,
-            postId: postId,
-            description: '',
-        });
-
-        event.save();
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			const event = await this.eventModel.findOne({
+				userId: post.user
+			});
+			if (event) {
+				if (!(event.events.filter(el => (el.postId.toString() === postId.toString()) && el.type === 'LIKE').length > 0)) {
+					event.events.unshift({
+						postId: postId,
+						type: 'LIKE',
+						description: '',
+						isRead: false,
+						date: new Date()
+					})
+					await event.save();
+				}
+			} else {
+				const event = new this.eventModel({
+					userId: post.user
+				});
+				event.events.unshift({
+					postId: postId,
+					type: 'LIKE',
+					description: '',
+					isRead: false,
+					date: new Date()
+				})
+				await event.save();
+			}
+		}
 
         post.likes.unshift({ user: args.currentUser._id });
 
@@ -264,6 +388,24 @@ export default class PostService {
 		post.comments.splice(removeIndex, 1);
 
 		await post.save();
+
+		if (post.user.toString() !== args.currentUser._id.toString()) {
+			const event = await this.eventModel.findOne({
+				userId: post.user
+			});
+			if (event) {
+				const removeIndex = event.events.filter(element => {
+					if (
+						element.postId == postId &&
+						element.type == 'COMMENT'
+					) {
+						return element;
+					}
+				}).map(element => element.postId.toString()).indexOf(args.currentUser._id);
+				event.events.splice(removeIndex, 1);
+				await event.save();
+			}
+		}
 
 		return { _id: postId };
     }
