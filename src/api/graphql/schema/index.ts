@@ -74,7 +74,7 @@ export const graphQlSchema = buildSchema(`
           user(_id: ID!): User
           profiles: [Profile]
           profile(_id: ID!): Profile
-          event: (_id: ID!): Event
+          event(_id: ID!): Event
           posts: [Post]
           searchPosts(filter: SPost): [Post]
           post(_id: ID!): Post
