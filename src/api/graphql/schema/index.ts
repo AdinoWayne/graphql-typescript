@@ -69,6 +69,16 @@ export const graphQlSchema = buildSchema(`
           endDate: Date
         }
 
+        type Demo {
+          name: String
+          posts: [TPost]
+        }
+
+        type TPost {
+          name: String
+          content: String
+        }
+
         type RootQuery {
           users: [User]
           user(_id: ID!): User
@@ -78,6 +88,8 @@ export const graphQlSchema = buildSchema(`
           posts: [Post]
           searchPosts(filter: SPost): [Post]
           post(_id: ID!): Post
+          demos: Demo
+          demo(id: Int): Demo
         }
 
         input postInput {
